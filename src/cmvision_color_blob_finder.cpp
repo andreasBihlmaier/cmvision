@@ -25,7 +25,8 @@
  */
 // author Andy Martignoni III, Brian Gerkey, Brendan Burns, Ben Grocholsky, Brad Kratochvil
 
-#include <opencv/highgui.h>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <ros/time.h>
 #include <cv_bridge/cv_bridge.h>
 
@@ -98,7 +99,7 @@ bool CMVisionColorBlobFinder::initialize(ros::NodeHandle &node_handle)
 
 	if (debug_on_)
 	{
-		cvNamedWindow("Image");
+    cv::namedWindow("Image");
 	}
 
 	return true;
@@ -182,6 +183,12 @@ void CMVisionColorBlobFinder::imageCB(const sensor_msgs::ImageConstPtr& msg)
   //image_bridge_.fromImage(*msg, "bgr8");
   //cvImage = image_bridge_.toIpl();
 
+  cv::Mat cvMat;
+  if (debug_on_) {
+    cvMat = cv::cvarrToMat(cvImage);
+    cv::cvtColor(cvMat, cvMat, CV_RGB2BGR);
+  }
+
 	// Get all the blobs
 	blob_count_ = 0;
 	for (int ch = 0; ch < CMV_MAX_COLORS; ++ch)
@@ -203,7 +210,7 @@ void CMVisionColorBlobFinder::imageCB(const sensor_msgs::ImageConstPtr& msg)
 
 			if (debug_on_)
 			{
-				cvRectangle(cvImage, cvPoint(r->x1, r->y1), cvPoint(r->x2, r->y2), CV_RGB(c.red, c.green, c.blue));
+        cv::rectangle(cvMat, cvPoint(r->x1, r->y1), cvPoint(r->x2, r->y2), CV_RGB(c.red, c.green, c.blue));
 			}
 
 			blob_message_.blobs[blob_count_].name = name;
@@ -227,8 +234,8 @@ void CMVisionColorBlobFinder::imageCB(const sensor_msgs::ImageConstPtr& msg)
 
 	if (debug_on_)
 	{
-		cvShowImage("Image", cvImage);
-		cvWaitKey(3);
+    cv::imshow("Image", cvMat);
+    cv::waitKey(3);
 	}
 
 	blob_message_.blob_count = blob_count_;
